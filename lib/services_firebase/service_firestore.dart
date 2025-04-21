@@ -138,20 +138,19 @@ class ServiceFirestore {
   // Add or remove a like from a post
   Future<void> addLike({required String memberID, required Post post}) async {
     try {
-      final List<dynamic> likes = post.likes;
-
-      if (likes.contains(memberID)) {
-        // Remove like if already liked
-        likes.remove(memberID);
+      if (post.likes.contains(memberID)) {
+        // If already liked, remove the like
+        await post.reference.update({
+          likesKey: FieldValue.arrayRemove([memberID]),
+        });
       } else {
-        // Add like if not already liked
-        likes.add(memberID);
+        // If not liked, add the like
+        await post.reference.update({
+          likesKey: FieldValue.arrayUnion([memberID]),
+        });
       }
-
-      // Update the post with the new likes array
-      await post.reference.update({likesKey: likes});
     } catch (e) {
-      print("Error updating likes: $e");
+      print("Error updating like: $e");
     }
   }
 
