@@ -52,24 +52,56 @@ class ServiceFirestore {
     required String imageName, // e.g., profilePictureKey or coverPictureKey
   }) async {
     try {
+      print(
+        "Updating image for user: $memberId, folder: $folder, imageName: $imageName",
+      );
+
+      // 检查文件大小
+      final fileSize = await file.length();
+      if (fileSize > 5 * 1024 * 1024) {
+        // 5MB限制
+        print("File too large: $fileSize bytes");
+        throw Exception("Le fichier est trop volumineux (max: 5MB)");
+      }
+
+      // 获取当前文档，检查是否有旧图片需要删除
+      final docSnapshot = await firestoreMember.doc(memberId).get();
+      if (docSnapshot.exists) {
+        final data = docSnapshot.data() as Map<String, dynamic>?;
+        final String? oldImageUrl = data?[imageName] as String?;
+
+        // 如果存在旧图片URL，尝试删除它
+        if (oldImageUrl != null && oldImageUrl.isNotEmpty) {
+          print("Found old image URL: $oldImageUrl, attempting to delete");
+          try {
+            await ServiceStorage().deleteImage(imageUrl: oldImageUrl);
+          } catch (e) {
+            print("Warning: Could not delete old image: $e");
+            // 继续处理，即使旧图片删除失败
+          }
+        }
+      }
+
       // Use ServiceStorage to upload the image
+      print("Starting upload of new image");
       String? imageUrl = await ServiceStorage().addImage(
         file: file,
-        folder:
-            folder, // Use collection key as base folder? Or specific folders like 'profile_pics'
+        folder: folder,
         userId: memberId,
-        imageName: imageName, // Or generate a unique name if needed
+        imageName: imageName,
       );
 
       if (imageUrl != null) {
+        print("Upload successful, updating document with new URL: $imageUrl");
         // Update the member document with the new image URL
-        await updateMember(
-          id: memberId,
-          data: {imageName: imageUrl},
-        ); // Use imageName as the field key
+        await updateMember(id: memberId, data: {imageName: imageUrl});
+        print("Document updated successfully");
+      } else {
+        throw Exception("Échec de l'upload, aucune URL retournée");
       }
     } catch (e) {
       print("Error updating image URL in Firestore: $e");
+      rethrow; // Rethrow so the UI can handle it
     }
   }
 
@@ -79,7 +111,15 @@ class ServiceFirestore {
       // Return an empty stream or handle appropriately if memberId is null
       return Stream.empty();
     }
-    return firestoreMember.doc(memberId).snapshots();
+
+    // 首先检查文档是否存在
+    DocumentReference docRef = firestoreMember.doc(memberId);
+
+    // 创建一个包含文档检查逻辑的流
+    return docRef.snapshots().handleError((error) {
+      print("Error in specificMember stream: $error");
+      return Stream.empty();
+    });
   }
 
   // Lire la liste de tous les posts, ordered by date descending
@@ -103,7 +143,11 @@ class ServiceFirestore {
     required XFile? image, // Image file (can be null)
   }) async {
     try {
+      print(
+        "Creating post for user: ${member.id}, with image: ${image != null}",
+      );
       final date = DateTime.now().millisecondsSinceEpoch; // Use timestamp
+
       Map<String, dynamic> map = {
         memberIdKey: member.id, // Store author's ID
         likesKey: [], // Initialize likes array
@@ -113,22 +157,37 @@ class ServiceFirestore {
 
       String? imageUrl;
       if (image != null) {
-        // Upload image using ServiceStorage if provided
-        File imageFile = File(image.path);
+        // 检查文件大小
+        final file = File(image.path);
+        final fileSize = await file.length();
+
+        if (fileSize > 10 * 1024 * 1024) {
+          // 10MB限制
+          print("Post image too large: $fileSize bytes");
+          throw Exception("L'image est trop volumineuse (max: 10MB)");
+        }
+
+        print("Uploading post image, size: $fileSize bytes");
+        // Upload image using ServiceStorage
         imageUrl = await ServiceStorage().addImage(
-          file: imageFile,
+          file: file,
           folder: postCollectionKey, // Store in 'posts' folder
           userId: member.id, // Subfolder by user ID
           imageName: date.toString(), // Use timestamp as image name
         );
+
         if (imageUrl != null) {
-          map[postImageKey] =
-              imageUrl; // Add image URL to map if upload successful
+          print("Post image uploaded successfully: $imageUrl");
+          map[postImageKey] = imageUrl; // Add image URL to map
+        } else {
+          print("Post image upload failed, continuing without image");
         }
       }
 
       // Add the post data to Firestore
-      await firestorePost.add(map); // Use add() to auto-generate document ID
+      print("Adding post to Firestore");
+      DocumentReference postRef = await firestorePost.add(map);
+      print("Post created with ID: ${postRef.id}");
     } catch (e) {
       print("Error creating post: $e");
       // Handle error appropriately

@@ -36,46 +36,134 @@ class _PageEcrirePostState extends State<PageEcrirePost> {
 
   // Function to handle image selection
   Future<void> _takePic(ImageSource source) async {
-    final ImagePicker picker = ImagePicker();
-    XFile? newFile = await picker.pickImage(
-      source: source,
-      maxWidth: 500,
-    ); // Limit width
-    if (newFile != null) {
+    try {
       setState(() {
-        _imageFile = newFile; // Update the state to show the preview
+        // 隐藏任何以前的错误消息
+        if (_isSending) return; // 如果正在发送则不允许选择新图片
       });
+
+      final ImagePicker picker = ImagePicker();
+
+      // 显示加载指示器
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              SizedBox(width: 10),
+              Text('Chargement de l\'image...'),
+            ],
+          ),
+          duration: Duration(seconds: 2),
+        ),
+      );
+
+      // 选择图片并限制大小
+      XFile? newFile = await picker.pickImage(
+        source: source,
+        maxWidth: 1200, // 限制宽度，平衡质量和性能
+        imageQuality: 85, // 适当压缩图片质量
+      );
+
+      if (newFile != null) {
+        // 检查文件大小
+        final file = File(newFile.path);
+        final fileSize = await file.length();
+        final fileSizeInMB = fileSize / (1024 * 1024);
+
+        print(
+          "Selected image: ${newFile.path}, size: ${fileSizeInMB.toStringAsFixed(2)} MB",
+        );
+
+        if (fileSize > 10 * 1024 * 1024) {
+          // 10MB限制
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Image trop volumineuse (max: 10MB)'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+
+        setState(() {
+          _imageFile = newFile; // 更新状态以显示预览
+        });
+
+        // 显示成功消息
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Image sélectionnée avec succès'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        // 用户取消了选择
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      }
+    } catch (e) {
+      print("Error selecting image: $e");
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur lors de la sélection de l\'image: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
   // Function to handle post submission
   void _sendPost() async {
-    FocusScope.of(context).requestFocus(FocusNode()); // Dismiss keyboard
+    try {
+      FocusScope.of(context).requestFocus(FocusNode()); // Dismiss keyboard
 
-    // Check if post has content
-    if (_imageFile == null && textController.text.isEmpty) {
-      // Show error message - cannot send empty post
-      ScaffoldMessenger.of(context).showSnackBar(
+      // Check if post has content
+      if (_imageFile == null && textController.text.trim().isEmpty) {
+        // Show error message - cannot send empty post
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Veuillez écrire quelque chose ou ajouter une image.',
+            ),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
+
+      setState(() {
+        _isSending = true; // Show loading state
+      });
+
+      // Show loading indicator
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+      scaffoldMessenger.showSnackBar(
         const SnackBar(
-          content: Text('Veuillez écrire quelque chose ou ajouter une image.'),
+          content: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              SizedBox(width: 10),
+              Text('Envoi du post en cours...'),
+            ],
+          ),
+          duration: Duration(minutes: 1), // 长时间显示，直到上传完成
         ),
       );
-      return;
-    }
 
-    setState(() {
-      _isSending = true; // Show loading state
-    });
-
-    // Show loading indicator
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Envoi du post...')));
-
-    try {
+      print("Starting post creation with image: ${_imageFile != null}");
       await ServiceFirestore().createPost(
-        member: widget.member, // Pass the current member object
-        text: textController.text,
+        member: widget.member,
+        text: textController.text.trim(),
         image: _imageFile, // Pass the selected image file
       );
 
@@ -87,23 +175,30 @@ class _PageEcrirePostState extends State<PageEcrirePost> {
       });
 
       // Show success message
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Post envoyé!')));
+      scaffoldMessenger.hideCurrentSnackBar();
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(
+          content: Text('Post envoyé avec succès!'),
+          backgroundColor: Colors.green,
+        ),
+      );
 
       // Switch to home tab
       widget.newSelection(0);
-    } catch (error) {
+    } catch (e) {
+      print("Error sending post: $e");
       setState(() {
         _isSending = false;
       });
 
       // Show error message
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Erreur d\'envoi: $error')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur d\'envoi: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
