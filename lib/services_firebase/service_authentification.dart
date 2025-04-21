@@ -1,4 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import '../modeles/constantes.dart';
+import 'service_firestore.dart';
 
 class ServiceAuthentification {
   // Récupérer une instance de auth
@@ -37,9 +39,24 @@ class ServiceAuthentification {
       // Implementation for creating account
       UserCredential userCredential = await instance
           .createUserWithEmailAndPassword(email: email, password: password);
-      // TODO: Call Firestore service to add member details (name, surname) using userCredential.user.uid
-      // For now, just indicate success
-      result = null;
+
+      // Add user data to Firestore
+      if (userCredential.user != null) {
+        String userId = userCredential.user!.uid;
+        Map<String, dynamic> userData = {
+          nameKey: name,
+          surnameKey: surname,
+          // Initialize other fields as needed
+          profilePictureKey: "",
+          coverPictureKey: "",
+          descriptionKey: "",
+        };
+
+        // Call Firestore service to add member details
+        await ServiceFirestore().addMember(id: userId, data: userData);
+      }
+
+      result = null; // Indicate success
     } on FirebaseAuthException catch (e) {
       result = e.message;
     } catch (e) {
