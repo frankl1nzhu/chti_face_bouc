@@ -9,6 +9,7 @@ import 'page_accueil.dart';
 import 'page_membres.dart';
 import 'page_ecrire_post.dart';
 import 'page_profil.dart';
+import 'page_notifications.dart'; // Import the notifications page
 
 class PageNavigation extends StatefulWidget {
   const PageNavigation({super.key});
@@ -338,7 +339,7 @@ class _PageNavigationState extends State<PageNavigation> {
           });
         },
       ), // 写帖子页面
-      const Center(child: Text("Notifications")), // 通知占位符
+      const PageNotifications(), // 通知页面
       PageProfil(member: member), // 带有当前用户的个人资料页面
     ];
 

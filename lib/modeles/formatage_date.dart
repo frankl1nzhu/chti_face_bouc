@@ -21,13 +21,51 @@ class FormatageDate {
 // Helper Widget for Date Display
 class DateHandler extends StatelessWidget {
   final int timestamp;
+
   const DateHandler({super.key, required this.timestamp});
 
   @override
   Widget build(BuildContext context) {
+    final DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    final DateTime now = DateTime.now();
+    final Duration difference = now.difference(dateTime);
+
+    final String formattedDate = _formatDate(dateTime, difference, now);
+
     return Text(
-      FormatageDate().formatTimestamp(timestamp),
-      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+      formattedDate,
+      style: TextStyle(fontSize: 12, color: Theme.of(context).hintColor),
     );
+  }
+
+  String _formatDate(DateTime dateTime, Duration difference, DateTime now) {
+    // Si c'est aujourd'hui
+    if (difference.inDays == 0) {
+      if (difference.inHours == 0) {
+        if (difference.inMinutes == 0) {
+          return 'À l\'instant';
+        }
+        return 'Il y a ${difference.inMinutes} ${difference.inMinutes == 1 ? 'minute' : 'minutes'}';
+      }
+      return 'Il y a ${difference.inHours} ${difference.inHours == 1 ? 'heure' : 'heures'}';
+    }
+
+    // Si c'est hier
+    if (difference.inDays == 1) {
+      return 'Hier à ${DateFormat('HH:mm').format(dateTime)}';
+    }
+
+    // Si c'est cette semaine (moins de 7 jours)
+    if (difference.inDays < 7) {
+      return 'Il y a ${difference.inDays} jours';
+    }
+
+    // Si c'est cette année
+    if (dateTime.year == now.year) {
+      return DateFormat('d MMM à HH:mm').format(dateTime);
+    }
+
+    // Sinon, affiche la date complète
+    return DateFormat('d MMM yyyy').format(dateTime);
   }
 }

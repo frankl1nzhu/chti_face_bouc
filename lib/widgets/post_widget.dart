@@ -109,10 +109,30 @@ class WidgetPost extends StatelessWidget {
                       ),
                       onPressed: () {
                         if (myId != null) {
+                          print(
+                            "LIKE DEBUG - MyId: $myId, PostId: ${post.id}, Author: ${post.memberId}, Already liked: $iLiked",
+                          );
+
                           ServiceFirestore().addLike(
                             memberID: myId,
                             post: post,
                           ); // Call like method
+
+                          // Send notification if this is not our own post
+                          if (myId != post.memberId && !iLiked) {
+                            print(
+                              "LIKE NOTIFICATION - Sending notification from $myId to ${post.memberId}",
+                            );
+                            ServiceFirestore().sendNotification(
+                              to: post.memberId,
+                              text: "a aimé votre publication",
+                              postId: post.id,
+                            );
+                          } else {
+                            print(
+                              "LIKE NOTIFICATION SKIP - myId: $myId, authorId: ${post.memberId}, already liked: $iLiked",
+                            );
+                          }
                         }
                       },
                     ),

@@ -241,5 +241,72 @@ class ServiceFirestore {
           .orderBy(dateKey, descending: false) // Show oldest comments first
           .snapshots();
 
+  // Envoyer une notification à un utilisateur specific ('to' is the recipient's member ID)
+  Future<void> sendNotification({
+    required String to, // Recipient Member ID
+    required String text, // Notification message
+    required String?
+    postId, // Related Post ID (can be null for other notifications)
+  }) async {
+    final memberId = ServiceAuthentification().myId; // Sender ID
+    print(
+      "NOTIFICATION DEBUG - Sender: $memberId, Recipient: $to, Text: $text, PostId: $postId",
+    );
+
+    if (memberId == null) {
+      print("NOTIFICATION ERROR - No sender ID available");
+      return;
+    }
+
+    if (to == memberId) {
+      print(
+        "NOTIFICATION SKIP - Cannot notify yourself (to: $to, memberId: $memberId)",
+      );
+      return; // Cannot notify yourself
+    }
+
+    Map<String, dynamic> map = {
+      dateKey: DateTime.now().millisecondsSinceEpoch,
+      isReadKey: false, // Initially unread
+      fromKey: memberId,
+      textKey: text,
+      if (postId != null)
+        postIdKey: postId, // Only include if postId is provided
+    };
+
+    try {
+      print("NOTIFICATION SENDING - to=$to from=$memberId text=$text");
+      // Add notification to the recipient's notification subcollection
+      final DocumentReference notifRef = await firestoreMember
+          .doc(to)
+          .collection(notificationCollectionKey)
+          .add(map); // Use add() for auto-ID
+      print("NOTIFICATION SENT - ID: ${notifRef.id}");
+    } catch (e) {
+      print("NOTIFICATION ERROR - Failed to send: $e");
+    }
+  }
+
+  // Marquer une notification comme lue
+  Future<void> markRead(DocumentReference reference) async {
+    try {
+      print("Marking notification as read: ${reference.path}");
+      await reference.update({isReadKey: true});
+      print("Notification marked as read");
+    } catch (e) {
+      print("Error marking notification as read: $e");
+    }
+  }
+
+  // Liste des notifications pour un membre specific, ordered by date descending
+  Stream<QuerySnapshot<Object?>> notificationForUser(String id) {
+    print("Getting notifications for user: $id");
+    return firestoreMember
+        .doc(id)
+        .collection(notificationCollectionKey)
+        .orderBy(dateKey, descending: true) // Show newest first
+        .snapshots();
+  }
+
   // --- Add methods for Posts, Comments, Notifications later ---
 }
