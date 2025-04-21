@@ -6,8 +6,7 @@ import '../services_firebase/service_firestore.dart'; // For author info stream
 import '../services_firebase/service_authentification.dart'; // For myId
 import 'avatar.dart';
 import '../modeles/formatage_date.dart'; // For DateHandler or formatting
-// Import Comment Page (Step 11)
-// import '../pages/page_detail_post_page.dart';
+import '../pages/page_detail_post_page.dart'; // Import Comment Page
 
 class WidgetPost extends StatelessWidget {
   final Post post;
@@ -129,8 +128,13 @@ class WidgetPost extends StatelessWidget {
                         Icons.messenger_outline,
                       ), // Use outline icon
                       onPressed: () {
-                        // Navigate to Comment Page (Step 11)
-                        // Navigator.push(context, MaterialPageRoute(builder: (context) => PageDetailPost(post: post)));
+                        // Navigate to Comment Page
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PageDetailPost(post: post),
+                          ),
+                        );
                       },
                     ),
                     const Text('Commenter'),

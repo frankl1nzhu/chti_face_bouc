@@ -5,6 +5,7 @@ import '../modeles/constantes.dart'; // Adjust path if necessary
 import '../modeles/membre.dart'; // Needed for Membre type
 import '../modeles/post.dart'; // Needed for Post type
 import 'service_storage.dart'; // Assuming service_storage.dart is in the same directory
+import '../services_firebase/service_authentification.dart'; // For myId
 
 class ServiceFirestore {
   // Accès a la BDD
@@ -153,6 +154,33 @@ class ServiceFirestore {
       print("Error updating like: $e");
     }
   }
+
+  // Ajouter un commentaire sur un post
+  Future<void> addComment({required Post post, required String text}) async {
+    final memberId = ServiceAuthentification().myId; // Get current user ID
+    if (memberId == null || text.trim().isEmpty) return; // Need user and text
+
+    Map<String, dynamic> map = {
+      memberIdKey: memberId,
+      dateKey: DateTime.now().millisecondsSinceEpoch,
+      textKey: text.trim(), // Trim whitespace
+    };
+
+    try {
+      // Add comment to the subcollection of the post
+      await post.reference.collection(commentCollectionKey).add(map);
+    } catch (e) {
+      print("Error adding comment: $e");
+    }
+  }
+
+  // Lire les commentaires sur un post, ordered by date ascending
+  Stream<QuerySnapshot<Object?>> postComment(String postId) =>
+      firestorePost
+          .doc(postId)
+          .collection(commentCollectionKey)
+          .orderBy(dateKey, descending: false) // Show oldest comments first
+          .snapshots();
 
   // --- Add methods for Posts, Comments, Notifications later ---
 }
