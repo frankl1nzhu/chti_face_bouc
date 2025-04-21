@@ -1,6 +1,9 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart'; // Needed for XFile
 import '../modeles/constantes.dart'; // Adjust path if necessary
+import '../modeles/membre.dart'; // Needed for Membre type
+import '../modeles/post.dart'; // Needed for Post type
 import 'service_storage.dart'; // Assuming service_storage.dart is in the same directory
 
 class ServiceFirestore {
@@ -76,6 +79,80 @@ class ServiceFirestore {
       return Stream.empty();
     }
     return firestoreMember.doc(memberId).snapshots();
+  }
+
+  // Lire la liste de tous les posts, ordered by date descending
+  Stream<QuerySnapshot<Object?>> allPosts() =>
+      firestorePost.orderBy(dateKey, descending: true).snapshots();
+
+  // Lire des posts d'un utilisateur specific
+  Stream<QuerySnapshot<Object?>> postForMember(String id) =>
+      firestorePost
+          .where(memberIdKey, isEqualTo: id)
+          .orderBy(dateKey, descending: true)
+          .snapshots();
+
+  // Lire la liste de tous les membres
+  Stream<QuerySnapshot<Object?>> allMembers() => firestoreMember.snapshots();
+
+  // Create a new post with optional image
+  Future<void> createPost({
+    required Membre member, // Pass the author's Membre object
+    required String text,
+    required XFile? image, // Image file (can be null)
+  }) async {
+    try {
+      final date = DateTime.now().millisecondsSinceEpoch; // Use timestamp
+      Map<String, dynamic> map = {
+        memberIdKey: member.id, // Store author's ID
+        likesKey: [], // Initialize likes array
+        dateKey: date,
+        textKey: text,
+      };
+
+      String? imageUrl;
+      if (image != null) {
+        // Upload image using ServiceStorage if provided
+        File imageFile = File(image.path);
+        imageUrl = await ServiceStorage().addImage(
+          file: imageFile,
+          folder: postCollectionKey, // Store in 'posts' folder
+          userId: member.id, // Subfolder by user ID
+          imageName: date.toString(), // Use timestamp as image name
+        );
+        if (imageUrl != null) {
+          map[postImageKey] =
+              imageUrl; // Add image URL to map if upload successful
+        }
+      }
+
+      // Add the post data to Firestore
+      await firestorePost.add(map); // Use add() to auto-generate document ID
+    } catch (e) {
+      print("Error creating post: $e");
+      // Handle error appropriately
+      rethrow; // Re-throw to let caller handle the error
+    }
+  }
+
+  // Add or remove a like from a post
+  Future<void> addLike({required String memberID, required Post post}) async {
+    try {
+      final List<dynamic> likes = post.likes;
+
+      if (likes.contains(memberID)) {
+        // Remove like if already liked
+        likes.remove(memberID);
+      } else {
+        // Add like if not already liked
+        likes.add(memberID);
+      }
+
+      // Update the post with the new likes array
+      await post.reference.update({likesKey: likes});
+    } catch (e) {
+      print("Error updating likes: $e");
+    }
   }
 
   // --- Add methods for Posts, Comments, Notifications later ---
