@@ -5,9 +5,7 @@ class EmptyBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Aucune donnée'), // Or CircularProgressIndicator() ?
-    ); // Center
+    return const Center(child: Text('Aucune donnée'));
   }
 }
 
@@ -17,9 +15,8 @@ class EmptyScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Chargement...")), // Optional title
-      body:
-          const EmptyBody(), // Or directly use Center(child: CircularProgressIndicator())
-    ); // Scaffold
+      appBar: AppBar(title: const Text("Chargement...")),
+      body: const EmptyBody(),
+    );
   }
 }

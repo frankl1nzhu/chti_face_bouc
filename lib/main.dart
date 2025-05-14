@@ -27,13 +27,13 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    // 延迟监听认证状态变化，确保Firebase连接完全建立
+    // Delay listening to auth state changes to ensure Firebase connection is fully established
     Future.delayed(const Duration(milliseconds: 500), () {
       _authStateSubscription = FirebaseAuth.instance.authStateChanges().listen((
         User? user,
       ) {
         print("Auth state changed: user = ${user?.uid ?? 'null'}");
-        // 强制刷新应用状态
+        // Force refresh app state
         if (mounted) setState(() {});
       });
     });
@@ -53,12 +53,12 @@ class _MyAppState extends State<MyApp> {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.brown),
         useMaterial3: true,
-      ), // ThemeData
+      ),
       debugShowCheckedModeBanner: false,
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
-          // 打印认证状态信息以便调试
+          // Print auth state info for debugging
           print(
             "StreamBuilder: connectionState=${snapshot.connectionState}, hasData=${snapshot.hasData}",
           );
@@ -71,26 +71,26 @@ class _MyAppState extends State<MyApp> {
                   children: [
                     CircularProgressIndicator(),
                     SizedBox(height: 20),
-                    Text("Chargement de l'application..."),
+                    Text("Loading application..."),
                   ],
                 ),
               ),
             );
           }
 
-          // 添加短暂延迟以确保Firebase连接完全建立
+          // Add a brief delay to ensure Firebase connection is fully established
           if (snapshot.hasData) {
-            // 用户已登录，显示导航页面
+            // User is logged in, show navigation page
             return FutureBuilder(
               future: Future.delayed(const Duration(milliseconds: 300)),
               builder: (context, _) => const PageNavigation(),
             );
           } else {
-            // 用户未登录，显示认证页面
+            // User is not logged in, show authentication page
             return const PageAuthentification();
           }
         },
       ),
-    ); // MaterialApp
+    );
   }
 }

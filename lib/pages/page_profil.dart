@@ -3,14 +3,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services_firebase/service_authentification.dart';
 import '../services_firebase/service_firestore.dart';
 import '../modeles/membre.dart';
-import '../modeles/post.dart'; // Import Post model
+import '../modeles/post.dart';
 import '../modeles/constantes.dart';
 import '../widgets/avatar.dart';
 import '../widgets/bouton_camera.dart';
-import '../widgets/post_widget.dart'; // Import the post widget
+import '../widgets/post_widget.dart';
 import 'page_edit_profil.dart';
-// Import WidgetPost (Step 9)
-// import '../widgets/post_widget.dart';
 
 class PageProfil extends StatefulWidget {
   final Membre member; // Pass the member whose profile is being viewed

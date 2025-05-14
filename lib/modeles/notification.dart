@@ -17,7 +17,7 @@ class NotificationModel {
   String get text =>
       data[textKey] ??
       ""; // Notification text (e.g., "a aimé votre post", "a commenté...")
-  int get date => data[dateKey] ?? 0; // Timestamp
-  bool get isRead => data[isReadKey] ?? false; // Read status
-  String get postId => data[postIdKey] ?? ""; // ID of the related post
+  int get date => data[dateKey] ?? 0;
+  bool get isRead => data[isReadKey] ?? false;
+  String get postId => data[postIdKey] ?? "";
 }

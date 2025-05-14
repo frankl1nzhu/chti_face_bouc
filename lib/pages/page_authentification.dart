@@ -11,7 +11,7 @@ class PageAuthentification extends StatefulWidget {
 class _PageAuthentificationState extends State<PageAuthentification> {
   // Variables
   bool accountExists = true; // Default to login view
-  bool _isLoading = false; // 添加加载状态标志
+  bool _isLoading = false; // Loading state flag
   final TextEditingController mailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController surnameController = TextEditingController();
@@ -21,7 +21,8 @@ class _PageAuthentificationState extends State<PageAuthentification> {
   @override
   void initState() {
     super.initState();
-    // 清除任何旧的登录信息
+
+    // Clear any old login info
     mailController.clear();
     passwordController.clear();
     surnameController.clear();
@@ -46,17 +47,14 @@ class _PageAuthentificationState extends State<PageAuthentification> {
 
   // Handle authentication (login or create account)
   Future<void> _handleAuth() async {
-    // 检查表单是否有效
     if (mailController.text.trim().isEmpty || passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Veuillez remplir tous les champs requis"),
-        ),
+        const SnackBar(content: Text("Please fill in all required fields")),
       );
       return;
     }
 
-    // 设置加载状态
+    // Set loading state
     setState(() {
       _isLoading = true;
     });
@@ -71,17 +69,12 @@ class _PageAuthentificationState extends State<PageAuthentification> {
           password: passwordController.text,
         );
       } else {
-        // 检查创建账户的必填字段
+        // Check required fields for account creation
         if (surnameController.text.trim().isEmpty ||
             nameController.text.trim().isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Veuillez remplir tous les champs requis"),
-            ),
+            const SnackBar(content: Text("Please fill in all required fields")),
           );
-          setState(() {
-            _isLoading = false;
-          });
           return;
         }
 
@@ -94,15 +87,13 @@ class _PageAuthentificationState extends State<PageAuthentification> {
         );
       }
     } catch (e) {
-      // 处理未捕获的异常
-      errorMessage = "Une erreur inattendue s'est produite: $e";
+      // Handle uncaught exceptions
+      errorMessage = "An unexpected error occurred: $e";
     } finally {
-      // 设置为非加载状态
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      // Set to non-loading state
+      setState(() {
+        _isLoading = false;
+      });
     }
 
     if (errorMessage != null && mounted) {
@@ -110,7 +101,6 @@ class _PageAuthentificationState extends State<PageAuthentification> {
         context,
       ).showSnackBar(SnackBar(content: Text(errorMessage)));
     }
-    // 不再需要手动导航，StreamBuilder 会处理
   }
 
   @override
@@ -122,11 +112,8 @@ class _PageAuthentificationState extends State<PageAuthentification> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const SizedBox(height: 20),
-              // Logo or image
-              Image.asset(
-                'assets/images/logo.jpg', // Using .jpg extension for the logo file
-                height: 150,
-              ),
+              // Logo
+              Image.asset('assets/images/logo.jpg', height: 150),
               const SizedBox(height: 20),
 
               // SegmentedButton to choose between login and signup
@@ -134,16 +121,15 @@ class _PageAuthentificationState extends State<PageAuthentification> {
                 segments: const [
                   ButtonSegment<bool>(
                     value: true,
-                    label: Text("Créer t'in compte"),
+                    label: Text("Create Account"),
                   ),
-                  ButtonSegment<bool>(
-                    value: false,
-                    label: Text("Y va connecter"),
-                  ),
+                  ButtonSegment<bool>(value: false, label: Text("Login")),
                 ],
                 selected: {!accountExists},
                 onSelectionChanged:
-                    _isLoading ? null : _onSelectedChanged, // 加载时禁用
+                    _isLoading
+                        ? null
+                        : _onSelectedChanged, // Disabled while loading
               ),
               const SizedBox(height: 20),
 
@@ -157,9 +143,9 @@ class _PageAuthentificationState extends State<PageAuthentification> {
                       // Email field
                       TextField(
                         controller: mailController,
-                        enabled: !_isLoading, // 加载时禁用
+                        enabled: !_isLoading, // Disabled while loading
                         decoration: const InputDecoration(
-                          labelText: 'Adresse mail',
+                          labelText: 'Email Address',
                           prefixIcon: Icon(Icons.email),
                         ),
                         keyboardType: TextInputType.emailAddress,
@@ -169,9 +155,9 @@ class _PageAuthentificationState extends State<PageAuthentification> {
                       // Password field
                       TextField(
                         controller: passwordController,
-                        enabled: !_isLoading, // 加载时禁用
+                        enabled: !_isLoading, // Disabled while loading
                         decoration: const InputDecoration(
-                          labelText: 'Mot de passe',
+                          labelText: 'Password',
                           prefixIcon: Icon(Icons.lock),
                         ),
                         obscureText: true,
@@ -180,22 +166,22 @@ class _PageAuthentificationState extends State<PageAuthentification> {
                       // Conditional fields for account creation
                       if (!accountExists) ...[
                         const SizedBox(height: 10),
-                        // Prénom field
+                        // First name field
                         TextField(
                           controller: surnameController,
-                          enabled: !_isLoading, // 加载时禁用
+                          enabled: !_isLoading, // Disabled while loading
                           decoration: const InputDecoration(
-                            labelText: 'Prénom',
+                            labelText: 'First Name',
                             prefixIcon: Icon(Icons.person),
                           ),
                         ),
                         const SizedBox(height: 10),
-                        // Nom field
+                        // Last name field
                         TextField(
                           controller: nameController,
-                          enabled: !_isLoading, // 加载时禁用
+                          enabled: !_isLoading, // Disabled while loading
                           decoration: const InputDecoration(
-                            labelText: 'Nom',
+                            labelText: 'Last Name',
                             prefixIcon: Icon(Icons.person_outline),
                           ),
                         ),
@@ -204,7 +190,10 @@ class _PageAuthentificationState extends State<PageAuthentification> {
                       const SizedBox(height: 20),
                       // Submit button
                       ElevatedButton(
-                        onPressed: _isLoading ? null : _handleAuth, // 加载时禁用
+                        onPressed:
+                            _isLoading
+                                ? null
+                                : _handleAuth, // Disabled while loading
                         style: ElevatedButton.styleFrom(
                           minimumSize: const Size.fromHeight(50),
                         ),
@@ -221,13 +210,13 @@ class _PageAuthentificationState extends State<PageAuthentification> {
                                       ),
                                     ),
                                     SizedBox(width: 10),
-                                    Text("Traitement en cours..."),
+                                    Text("Processing..."),
                                   ],
                                 )
                                 : Text(
                                   accountExists
-                                      ? "C'est parti!"
-                                      : "Je crée min compte",
+                                      ? "Let's go!"
+                                      : "Create my account",
                                 ),
                       ),
                     ],

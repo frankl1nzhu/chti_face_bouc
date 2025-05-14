@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services_firebase/service_firestore.dart';
 import '../modeles/commentaire.dart';
-import '../modeles/membre.dart'; // For author info
+import '../modeles/membre.dart';
 import 'avatar.dart';
-import '../modeles/formatage_date.dart'; // For DateHandler
+import '../modeles/formatage_date.dart';
 import '../widgets/widget_vide.dart';
 
 class ListeCommentaire extends StatelessWidget {
@@ -33,8 +33,7 @@ class ListeCommentaire extends StatelessWidget {
 
         // Use ListView.builder or Column for comments
         return ListView.separated(
-          shrinkWrap:
-              true, // Important if inside a Column/SingleChildScrollView
+          shrinkWrap: true,
           physics:
               const NeverScrollableScrollPhysics(), // Disable scrolling if inside another scroll view
           itemCount: docs.length,

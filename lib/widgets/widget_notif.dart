@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../modeles/notification.dart'; // Use NotificationModel
-import '../modeles/post.dart'; // For navigating to post
+import '../modeles/notification.dart';
+import '../modeles/post.dart';
 import '../services_firebase/service_firestore.dart';
-import '../pages/page_detail_post.dart'; // To navigate to post detail
-import '../modeles/membre.dart'; // For sender info
+import '../pages/page_detail_post.dart';
+import '../modeles/membre.dart';
 import 'avatar.dart';
-import '../modeles/formatage_date.dart'; // For DateHandler
+import '../modeles/formatage_date.dart';
 
 class WidgetNotif extends StatelessWidget {
   final NotificationModel notif;
@@ -34,9 +34,7 @@ class WidgetNotif extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) {
-                        return PageDetailPost(
-                          post: post,
-                        ); // Navigate to the post detail
+                        return PageDetailPost(post: post);
                       },
                     ),
                   );
@@ -97,15 +95,15 @@ class WidgetNotif extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(notif.text), // Display notification text
+                  Text(notif.text),
                   const SizedBox(height: 4),
-                  DateHandler(timestamp: notif.date), // Display time
+                  DateHandler(timestamp: notif.date),
                 ],
               ),
             ),
           ],
-        ), // Row
-      ), // Container
-    ); // InkWell
+        ),
+      ),
+    );
   }
 }

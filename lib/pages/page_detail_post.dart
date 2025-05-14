@@ -28,7 +28,6 @@ class _PageDetailPostState extends State<PageDetailPost> {
     super.dispose();
   }
 
-  // Send a comment
   void _sendComment() async {
     if (_commentController.text.trim().isEmpty) return;
 
@@ -42,12 +41,12 @@ class _PageDetailPostState extends State<PageDetailPost> {
         text: _commentController.text.trim(),
       );
 
-      // Envoyer une notification au propriétaire du post (sauf si c'est nous-même)
+      // Send notification to post owner (unless it's ourselves)
       final currentUserId = ServiceAuthentification().myId;
       if (currentUserId != null && currentUserId != widget.post.memberId) {
         await ServiceFirestore().sendNotification(
           to: widget.post.memberId,
-          text: "a commenté votre publication",
+          text: "commented on your post",
           postId: widget.post.id,
         );
       }
@@ -56,7 +55,7 @@ class _PageDetailPostState extends State<PageDetailPost> {
     } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Erreur lors de l\'envoi: $e')));
+      ).showSnackBar(SnackBar(content: Text('Error sending: $e')));
     } finally {
       if (mounted) {
         setState(() {
@@ -69,7 +68,7 @@ class _PageDetailPostState extends State<PageDetailPost> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Détail du post')),
+      appBar: AppBar(title: const Text('Post Details')),
       body: Column(
         children: [
           // Post display
@@ -81,9 +80,7 @@ class _PageDetailPostState extends State<PageDetailPost> {
               }
 
               if (!snapshot.hasData || snapshot.data?.data() == null) {
-                return const Center(
-                  child: Text('Impossible de charger le post'),
-                );
+                return const Center(child: Text('Unable to load post'));
               }
 
               final data = snapshot.data!;
@@ -156,7 +153,7 @@ class _PageDetailPostState extends State<PageDetailPost> {
                                   );
                                   ServiceFirestore().sendNotification(
                                     to: widget.post.memberId,
-                                    text: "a aimé votre publication",
+                                    text: "liked your post",
                                     postId: widget.post.id,
                                   );
                                 } else {
@@ -203,7 +200,7 @@ class _PageDetailPostState extends State<PageDetailPost> {
                     return StreamBuilder<DocumentSnapshot>(
                       stream: ServiceFirestore().specificMember(commenterId),
                       builder: (context, memberSnapshot) {
-                        String commenterName = "Utilisateur inconnu";
+                        String commenterName = "Unknown user";
                         String? commenterPic;
 
                         if (memberSnapshot.hasData &&
@@ -256,7 +253,7 @@ class _PageDetailPostState extends State<PageDetailPost> {
                   child: TextField(
                     controller: _commentController,
                     decoration: const InputDecoration(
-                      hintText: 'Ecrire un commentaire...',
+                      hintText: 'Write a comment...',
                       border: OutlineInputBorder(),
                     ),
                     minLines: 1,

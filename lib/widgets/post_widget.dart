@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../modeles/post.dart';
-import '../modeles/membre.dart'; // Need Membre for author info
-import '../services_firebase/service_firestore.dart'; // For author info stream
-import '../services_firebase/service_authentification.dart'; // For myId
+import '../modeles/membre.dart';
+import '../services_firebase/service_firestore.dart';
+import '../services_firebase/service_authentification.dart';
 import 'avatar.dart';
-import '../modeles/formatage_date.dart'; // For DateHandler or formatting
-import '../pages/page_detail_post_page.dart'; // Import Comment Page
+import '../modeles/formatage_date.dart';
+import '../pages/page_detail_post_page.dart';
 
 class WidgetPost extends StatelessWidget {
   final Post post;
@@ -51,7 +51,7 @@ class WidgetPost extends StatelessWidget {
                         ),
                         DateHandler(
                           timestamp: post.date.millisecondsSinceEpoch,
-                        ), // Use DateHandler with milliseconds
+                        ),
                       ],
                     ),
                   ],
@@ -88,7 +88,7 @@ class WidgetPost extends StatelessWidget {
                         child: Text("Impossible de charger l'image"),
                       ),
                 ),
-              ), // Display image
+              ),
 
             const Divider(),
 
@@ -144,9 +144,7 @@ class WidgetPost extends StatelessWidget {
                 Row(
                   children: [
                     IconButton(
-                      icon: const Icon(
-                        Icons.messenger_outline,
-                      ), // Use outline icon
+                      icon: const Icon(Icons.messenger_outline),
                       onPressed: () {
                         // Navigate to Comment Page
                         Navigator.push(
@@ -161,10 +159,10 @@ class WidgetPost extends StatelessWidget {
                   ],
                 ),
               ],
-            ), // Row Footer
+            ),
           ],
-        ), // Column
-      ), // Padding
-    ); // Card
+        ),
+      ),
+    );
   }
 }

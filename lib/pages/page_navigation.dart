@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services_firebase/service_authentification.dart';
 import '../services_firebase/service_firestore.dart';
-import '../modeles/membre.dart'; // Import Membre model
-import '../widgets/widget_vide.dart'; // Import helper widgets
-// Import page widgets (PageAccueil, PageMembres, PageEcrirePost, PageNotif, PageProfil)
+import '../modeles/membre.dart';
+import '../widgets/widget_vide.dart';
 import 'page_accueil.dart';
 import 'page_membres.dart';
 import 'page_ecrire_post.dart';
 import 'page_profil.dart';
-import 'page_notifications.dart'; // Import the notifications page
+import 'page_notifications.dart';
 
 class PageNavigation extends StatefulWidget {
   const PageNavigation({super.key});
@@ -27,15 +26,15 @@ class _PageNavigationState extends State<PageNavigation> {
     print("Current memberId: $memberId"); // Debug print
 
     if (memberId == null) {
-      // 如果没有登录，显示登录提示
+      // If not logged in, show login prompt
       print("No memberId found, showing login page");
       return Scaffold(
-        appBar: AppBar(title: const Text("Authentification")),
+        appBar: AppBar(title: const Text("Authentication")),
         body: const Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("Veuillez vous connecter pour accéder à l'application"),
+              Text("Please login to access the application"),
               SizedBox(height: 20),
               CircularProgressIndicator(),
             ],
@@ -44,7 +43,7 @@ class _PageNavigationState extends State<PageNavigation> {
       );
     }
 
-    // 使用FutureBuilder先检查文档是否存在
+    // Use FutureBuilder to first check if document exists
     return FutureBuilder<DocumentSnapshot>(
       future: ServiceFirestore().firestoreMember.doc(memberId).get(),
       builder: (context, docSnapshot) {
@@ -52,20 +51,20 @@ class _PageNavigationState extends State<PageNavigation> {
           "FutureBuilder state: ${docSnapshot.connectionState}, hasData: ${docSnapshot.hasData}",
         );
 
-        // 如果正在加载，显示加载界面
+        // If loading, show loading screen
         if (docSnapshot.connectionState == ConnectionState.waiting) {
           return Scaffold(
-            appBar: AppBar(title: const Text("Chargement...")),
+            appBar: AppBar(title: const Text("Loading...")),
             body: const Center(child: CircularProgressIndicator()),
           );
         }
 
-        // 处理错误
+        // Handle errors
         if (docSnapshot.hasError) {
           print("FutureBuilder error: ${docSnapshot.error}");
           return Scaffold(
             appBar: AppBar(
-              title: const Text("Erreur"),
+              title: const Text("Error"),
               actions: [
                 IconButton(
                   icon: const Icon(Icons.logout),
@@ -80,7 +79,7 @@ class _PageNavigationState extends State<PageNavigation> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "Erreur de chargement: ${docSnapshot.error}",
+                    "Loading error: ${docSnapshot.error}",
                     style: const TextStyle(fontSize: 16),
                     textAlign: TextAlign.center,
                   ),
@@ -89,7 +88,7 @@ class _PageNavigationState extends State<PageNavigation> {
                     onPressed: () {
                       setState(() {}); // Retry by rebuilding
                     },
-                    child: const Text("Réessayer"),
+                    child: const Text("Retry"),
                   ),
                 ],
               ),
@@ -97,7 +96,7 @@ class _PageNavigationState extends State<PageNavigation> {
           );
         }
 
-        // 再次检查用户ID是否有效 (可能在获取数据期间发生变化)
+        // Check user ID validity again (may have changed during data fetch)
         final currentMemberId = ServiceAuthentification().myId;
         if (currentMemberId == null || currentMemberId != memberId) {
           print("User ID changed during data loading, rebuilding");
@@ -107,10 +106,10 @@ class _PageNavigationState extends State<PageNavigation> {
           );
         }
 
-        // 检查文档是否存在
+        // Check if document exists
         if (!docSnapshot.hasData || !docSnapshot.data!.exists) {
           print("Document doesn't exist for ID: $memberId - creating new user");
-          // 创建一个新的用户记录
+          // Create new user record
           Map<String, dynamic> defaultUserData = {
             "name": "",
             "surname": "",
@@ -119,7 +118,7 @@ class _PageNavigationState extends State<PageNavigation> {
             "description": "",
           };
 
-          // 创建文档
+          // Create document
           ServiceFirestore()
               .addMember(id: memberId, data: defaultUserData)
               .then((_) {
@@ -130,10 +129,10 @@ class _PageNavigationState extends State<PageNavigation> {
                 print("Error creating user document: $error");
               });
 
-          // 显示创建配置文件的界面
+          // Show profile creation interface
           return Scaffold(
             appBar: AppBar(
-              title: const Text("Nouveau profil"),
+              title: const Text("New Profile"),
               actions: [
                 IconButton(
                   icon: const Icon(Icons.logout),
@@ -149,14 +148,14 @@ class _PageNavigationState extends State<PageNavigation> {
                 children: [
                   CircularProgressIndicator(),
                   SizedBox(height: 20),
-                  Text("Création de votre profil..."),
+                  Text("Creating your profile..."),
                 ],
               ),
             ),
           );
         }
 
-        // 文档存在，使用StreamBuilder监听实时更新
+        // Document exists, use StreamBuilder for real-time updates
         return StreamBuilder<DocumentSnapshot>(
           stream: ServiceFirestore().specificMember(memberId),
           builder: (
@@ -169,7 +168,7 @@ class _PageNavigationState extends State<PageNavigation> {
               print("StreamBuilder error: ${snapshot.error}");
             }
 
-            // 最终检查用户ID是否仍然有效
+            // Final check if user ID is still valid
             final finalMemberId = ServiceAuthentification().myId;
             if (finalMemberId == null || finalMemberId != memberId) {
               print("User ID changed before display, rebuilding");
@@ -179,10 +178,10 @@ class _PageNavigationState extends State<PageNavigation> {
               );
             }
 
-            // 检查连接状态
+            // Check connection state
             if (snapshot.connectionState == ConnectionState.waiting) {
-              // 使用已获取的文档数据构建Membre，而不是显示加载界面
-              // 这避免了切换时的闪烁
+              // Use already fetched document data to build Member instead of showing loading
+              // This avoids flickering during transitions
               try {
                 final data = docSnapshot.data!;
                 print("Using cached document data");
@@ -201,13 +200,13 @@ class _PageNavigationState extends State<PageNavigation> {
               }
             }
 
-            // 处理错误或空数据
+            // Handle errors or empty data
             if (snapshot.hasError ||
                 !snapshot.hasData ||
                 snapshot.data?.data() == null) {
               print("Error or empty data in stream: ${snapshot.error}");
 
-              // 尝试使用缓存的文档数据
+              // Try using cached document data
               try {
                 final data = docSnapshot.data!;
                 print("Using cached document data on error");
@@ -221,10 +220,10 @@ class _PageNavigationState extends State<PageNavigation> {
               } catch (e) {
                 print("Error using cached data on error: $e");
 
-                // 显示错误信息
+                // Show error message
                 return Scaffold(
                   appBar: AppBar(
-                    title: const Text("Erreur"),
+                    title: const Text("Error"),
                     actions: [
                       IconButton(
                         icon: const Icon(Icons.logout),
@@ -239,7 +238,7 @@ class _PageNavigationState extends State<PageNavigation> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          "Erreur de chargement du profil: ${snapshot.error}",
+                          "Error loading profile: ${snapshot.error}",
                           style: const TextStyle(fontSize: 16),
                           textAlign: TextAlign.center,
                         ),
@@ -248,7 +247,7 @@ class _PageNavigationState extends State<PageNavigation> {
                           onPressed: () {
                             setState(() {}); // Retry
                           },
-                          child: const Text("Réessayer"),
+                          child: const Text("Retry"),
                         ),
                       ],
                     ),
@@ -257,7 +256,7 @@ class _PageNavigationState extends State<PageNavigation> {
               }
             }
 
-            // 有数据，创建Membre对象
+            // Have data, create Member object
             try {
               final data = snapshot.data!;
               print("Creating member from stream data: ${data.id}");
@@ -272,7 +271,7 @@ class _PageNavigationState extends State<PageNavigation> {
             } catch (e) {
               print("Exception in PageNavigation build: $e");
 
-              // 尝试使用缓存的文档数据
+              // Try using cached document data
               try {
                 final data = docSnapshot.data!;
                 print("Using cached document data after exception");
@@ -284,10 +283,10 @@ class _PageNavigationState extends State<PageNavigation> {
 
                 return buildScaffoldWithMember(member);
               } catch (fallbackError) {
-                // 显示错误信息
+                // Show error message
                 return Scaffold(
                   appBar: AppBar(
-                    title: const Text("Erreur"),
+                    title: const Text("Error"),
                     actions: [
                       IconButton(
                         icon: const Icon(Icons.logout),
@@ -302,7 +301,7 @@ class _PageNavigationState extends State<PageNavigation> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          "Erreur lors du chargement: $e",
+                          "Error while loading: $e",
                           style: const TextStyle(fontSize: 16),
                           textAlign: TextAlign.center,
                         ),
@@ -311,7 +310,7 @@ class _PageNavigationState extends State<PageNavigation> {
                           onPressed: () {
                             setState(() {}); // Retry
                           },
-                          child: const Text("Réessayer"),
+                          child: const Text("Retry"),
                         ),
                       ],
                     ),
@@ -325,12 +324,12 @@ class _PageNavigationState extends State<PageNavigation> {
     );
   }
 
-  // 提取构建Scaffold的方法
+  // Extract method to build Scaffold
   Widget buildScaffoldWithMember(Membre member) {
-    // 定义导航栏的页面
+    // Define navigation bar pages
     List<Widget> bodies = [
-      const PageAccueil(title: "Accueil"), // 首页
-      const PageMembres(), // 成员页面
+      const PageAccueil(title: "Home"), // Home page
+      const PageMembres(), // Members page
       PageEcrirePost(
         member: member,
         newSelection: (int index) {
@@ -338,16 +337,16 @@ class _PageNavigationState extends State<PageNavigation> {
             this.index = index;
           });
         },
-      ), // 写帖子页面
-      const PageNotifications(), // 通知页面
-      PageProfil(member: member), // 带有当前用户的个人资料页面
+      ), // Write post page
+      const PageNotifications(), // Notifications page
+      PageProfil(member: member), // Profile page with current user
     ];
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          member.fullName.isNotEmpty ? member.fullName : "Cht'i Face Bouc",
-        ), // 显示用户名或默认标题
+          member.fullName.isNotEmpty ? member.fullName : "Ch'ti Face Book",
+        ), // Show username or default title
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -357,27 +356,24 @@ class _PageNavigationState extends State<PageNavigation> {
           ),
         ],
       ),
-      body: bodies[index], // 显示选定的页面
+      body: bodies[index], // Show selected page
       bottomNavigationBar: NavigationBar(
         labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
         selectedIndex: index,
         onDestinationSelected: (int newValue) {
           setState(() {
-            index = newValue; // 更新选定的索引
+            index = newValue; // Update selected index
           });
         },
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.home), label: "Accueil"),
-          NavigationDestination(icon: Icon(Icons.group), label: "Membres"),
-          NavigationDestination(
-            icon: Icon(Icons.border_color),
-            label: "Ecrire",
-          ),
+          NavigationDestination(icon: Icon(Icons.home), label: "Home"),
+          NavigationDestination(icon: Icon(Icons.group), label: "Members"),
+          NavigationDestination(icon: Icon(Icons.border_color), label: "Write"),
           NavigationDestination(
             icon: Icon(Icons.notifications),
-            label: "Notification",
+            label: "Notifications",
           ),
-          NavigationDestination(icon: Icon(Icons.person), label: "Profil"),
+          NavigationDestination(icon: Icon(Icons.person), label: "Profile"),
         ],
       ),
     );

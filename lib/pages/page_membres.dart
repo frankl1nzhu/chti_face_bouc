@@ -3,8 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services_firebase/service_firestore.dart';
 import '../modeles/membre.dart';
 import '../widgets/widget_vide.dart';
-import '../widgets/avatar.dart'; // Use Avatar widget
-import 'page_profil.dart'; // To navigate to member's profile
+import '../widgets/avatar.dart';
+import 'page_profil.dart';
 
 class PageMembres extends StatefulWidget {
   const PageMembres({super.key});
@@ -17,7 +17,7 @@ class _PageMembresState extends State<PageMembres> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: ServiceFirestore().allMembers(), // Fetch all members
+      stream: ServiceFirestore().allMembers(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -65,10 +65,10 @@ class _PageMembresState extends State<PageMembres> {
                   ),
                 );
               },
-            ); // ListTile
-          }, // itemBuilder
-        ); // ListView.separated
-      }, // builder
-    ); // StreamBuilder
+            );
+          },
+        );
+      },
+    );
   }
 }

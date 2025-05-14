@@ -2,7 +2,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 
 class FormatageDate {
-  // Formats timestamp into a relative string (e.g., "10:30" or "Mar 15, 2024")
+  // Formats timestamp into a relative string (e.g., "10:30" or "Mar 15, 2025")
   String formatTimestamp(int timestamp) {
     DateTime postTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
     DateTime now = DateTime.now();
@@ -10,9 +10,9 @@ class FormatageDate {
 
     // Check if the post was made today
     if (now.difference(postTime).inDays == 0 && now.day == postTime.day) {
-      format = DateFormat.Hm(); // Show time only (e.g., 14:35)
+      format = DateFormat.Hm(); // Show time only (e.g., 10:30)
     } else {
-      format = DateFormat.yMMMd(); // Show date (e.g., Mar 15, 2024)
+      format = DateFormat.yMMMd(); // Show date (e.g., Mar 15, 2025)
     }
     return format.format(postTime).toString();
   }
@@ -39,33 +39,33 @@ class DateHandler extends StatelessWidget {
   }
 
   String _formatDate(DateTime dateTime, Duration difference, DateTime now) {
-    // Si c'est aujourd'hui
+    // If it's today
     if (difference.inDays == 0) {
       if (difference.inHours == 0) {
         if (difference.inMinutes == 0) {
-          return 'À l\'instant';
+          return 'Just now';
         }
-        return 'Il y a ${difference.inMinutes} ${difference.inMinutes == 1 ? 'minute' : 'minutes'}';
+        return '${difference.inMinutes} ${difference.inMinutes == 1 ? 'minute' : 'minutes'} ago';
       }
-      return 'Il y a ${difference.inHours} ${difference.inHours == 1 ? 'heure' : 'heures'}';
+      return '${difference.inHours} ${difference.inHours == 1 ? 'hour' : 'hours'} ago';
     }
 
-    // Si c'est hier
+    // If it's yesterday
     if (difference.inDays == 1) {
-      return 'Hier à ${DateFormat('HH:mm').format(dateTime)}';
+      return 'Yesterday at ${DateFormat('HH:mm').format(dateTime)}';
     }
 
-    // Si c'est cette semaine (moins de 7 jours)
+    // If it's this week (less than 7 days)
     if (difference.inDays < 7) {
-      return 'Il y a ${difference.inDays} jours';
+      return '${difference.inDays} days ago';
     }
 
-    // Si c'est cette année
+    // If it's this year
     if (dateTime.year == now.year) {
-      return DateFormat('d MMM à HH:mm').format(dateTime);
+      return DateFormat('MMM d at HH:mm').format(dateTime);
     }
 
-    // Sinon, affiche la date complète
-    return DateFormat('d MMM yyyy').format(dateTime);
+    // Otherwise, display the full date
+    return DateFormat('MMM d yyyy').format(dateTime);
   }
 }

@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 
 class ServiceStorage {
-  // 单例模式实现
+  // Singleton pattern implementation
   static final ServiceStorage _instance = ServiceStorage._internal();
 
   factory ServiceStorage() {
@@ -13,23 +13,23 @@ class ServiceStorage {
 
   ServiceStorage._internal();
 
-  // 获取Firebase Storage实例
+  // Get Firebase Storage instance
   static final instance = FirebaseStorage.instance;
   Reference get ref => instance.ref();
 
-  // 上传图片并返回下载URL
+  // Upload image and return download URL
   Future<String?> addImage({
-    required File file, // 图片文件
-    required String folder, // 文件夹名称 (例如: 'members', 'posts')
-    required String userId, // 用户ID，用于子文件夹结构
-    required String imageName, // 图片名称 (例如: 时间戳, UUID)
+    required File file, // Image file
+    required String folder, // Folder name (e.g., 'members', 'posts')
+    required String userId, // User ID, used for subfolder structure
+    required String imageName, // Image name (e.g., timestamp, UUID)
   }) async {
     try {
       print(
         "Starting upload process for image in folder: $folder, userId: $userId, imageName: $imageName",
       );
 
-      // 获取文件扩展名
+      // Get file extension
       final fileExtension = path.extension(file.path).toLowerCase();
       final validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
 
@@ -38,13 +38,13 @@ class ServiceStorage {
         return null;
       }
 
-      // 创建引用: /folder/userId/imageName.ext
+      // Create reference: /folder/userId/imageName.ext
       final String fileName = "$imageName$fileExtension";
       final reference = ref.child(folder).child(userId).child(fileName);
 
       print("Created storage reference: ${reference.fullPath}");
 
-      // 设置元数据
+      // Set metadata
       final metadata = SettableMetadata(
         contentType: 'image/${fileExtension.substring(1)}',
         customMetadata: {
@@ -53,11 +53,11 @@ class ServiceStorage {
         },
       );
 
-      // 上传文件
+      // Upload file
       print("Starting file upload...");
       UploadTask task = reference.putFile(file, metadata);
 
-      // 监听上传状态
+      // Monitor upload status
       task.snapshotEvents.listen(
         (TaskSnapshot snapshot) {
           final progress =
@@ -69,11 +69,11 @@ class ServiceStorage {
         },
       );
 
-      // 等待上传完成
+      // Wait for upload to complete
       print("Waiting for upload completion...");
       TaskSnapshot snapshot = await task;
 
-      // 获取下载URL
+      // Get download URL
       print("Upload complete, getting download URL...");
       String imageUrl = await snapshot.ref.getDownloadURL();
 
@@ -97,10 +97,10 @@ class ServiceStorage {
     }
   }
 
-  // 从存储中删除图片
+  // Delete image from storage
   Future<bool> deleteImage({required String imageUrl}) async {
     try {
-      // 从URL获取存储引用
+      // Get storage reference from URL
       print("Attempting to delete image: $imageUrl");
       Reference ref = FirebaseStorage.instance.refFromURL(imageUrl);
       await ref.delete();

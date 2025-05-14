@@ -5,8 +5,8 @@ import '../services_firebase/service_firestore.dart';
 import '../modeles/constantes.dart';
 
 class BoutonCamera extends StatefulWidget {
-  final String type; // profilePictureKey 或 coverPictureKey
-  final String id; // 用户ID
+  final String type; // profilePictureKey or coverPictureKey
+  final String id; // user ID
 
   const BoutonCamera({super.key, required this.type, required this.id});
 
@@ -17,28 +17,31 @@ class BoutonCamera extends StatefulWidget {
 class _BoutonCameraState extends State<BoutonCamera> {
   bool _isUploading = false;
 
-  // 选择并上传图片
+  // Select and upload image
   Future<void> _takePicture(ImageSource source, BuildContext context) async {
     try {
       final ImagePicker picker = ImagePicker();
 
-      // 选择图片，根据类型限制大小
+      // Choose image, limit size based on type
       final XFile? xFile = await picker.pickImage(
         source: source,
-        maxWidth: widget.type == profilePictureKey ? 500 : 1000, // 头像较小，封面较大
-        imageQuality: 80, // 适当压缩图片质量
+        maxWidth:
+            widget.type == profilePictureKey
+                ? 500
+                : 1000, // Profile smaller, cover larger
+        imageQuality: 80, // Appropriate image compression
       );
 
       if (xFile == null) {
         print("User cancelled image picker");
-        return; // 用户取消了选择
+        return; // User cancelled selection
       }
 
       setState(() {
         _isUploading = true;
       });
 
-      // 显示上传指示器
+      // Show upload indicator
       final scaffoldMessenger = ScaffoldMessenger.of(context);
       scaffoldMessenger.showSnackBar(
         const SnackBar(
@@ -50,26 +53,26 @@ class _BoutonCameraState extends State<BoutonCamera> {
                 child: CircularProgressIndicator(strokeWidth: 2),
               ),
               SizedBox(width: 10),
-              Text('Téléchargement de l\'image...'),
+              Text('Uploading image...'),
             ],
           ),
-          duration: Duration(minutes: 1), // 长时间显示，直到上传完成
+          duration: Duration(minutes: 1), // Long display until upload completes
         ),
       );
 
-      // 转换为File对象
+      // Convert to File object
       File imageFile = File(xFile.path);
       print(
         "Image selected: ${imageFile.path}, size: ${await imageFile.length()} bytes",
       );
 
-      // 确定文件夹名称
+      // Determine folder name
       String folder =
           widget.type == profilePictureKey || widget.type == coverPictureKey
               ? memberCollectionKey
               : postCollectionKey;
 
-      // 执行上传
+      // Execute upload
       await ServiceFirestore().updateImage(
         file: imageFile,
         folder: folder,
@@ -77,7 +80,7 @@ class _BoutonCameraState extends State<BoutonCamera> {
         imageName: widget.type,
       );
 
-      // 隐藏加载指示器并显示成功消息
+      // Hide loading indicator and show success message
       if (mounted) {
         setState(() {
           _isUploading = false;
@@ -85,21 +88,21 @@ class _BoutonCameraState extends State<BoutonCamera> {
         scaffoldMessenger.hideCurrentSnackBar();
         scaffoldMessenger.showSnackBar(
           const SnackBar(
-            content: Text('Image mise à jour avec succès!'),
+            content: Text('Image updated successfully!'),
             backgroundColor: Colors.green,
           ),
         );
       }
     } catch (e) {
       print("Error during image selection/upload: $e");
-      // 在出错时设置上传状态为false
+      // Set upload status to false when error occurs
       if (mounted) {
         setState(() {
           _isUploading = false;
         });
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -107,7 +110,7 @@ class _BoutonCameraState extends State<BoutonCamera> {
 
   @override
   Widget build(BuildContext context) {
-    // 根据上传状态显示不同图标
+    // Display different icons based on upload status
     return _isUploading
         ? Container(
           decoration: BoxDecoration(
@@ -131,9 +134,9 @@ class _BoutonCameraState extends State<BoutonCamera> {
             shadows: [Shadow(blurRadius: 5.0, color: Colors.black)],
           ),
           onPressed: () {
-            if (_isUploading) return; // 如果正在上传，阻止新的操作
+            if (_isUploading) return; // If uploading, prevent new operations
 
-            // 显示选项：相机或图库
+            // Show options: camera or gallery
             showModalBottomSheet(
               context: context,
               builder: (BuildContext bc) {
@@ -142,7 +145,7 @@ class _BoutonCameraState extends State<BoutonCamera> {
                     children: <Widget>[
                       ListTile(
                         leading: const Icon(Icons.photo_library),
-                        title: const Text('Galerie'),
+                        title: const Text('Gallery'),
                         onTap: () {
                           _takePicture(ImageSource.gallery, context);
                           Navigator.of(context).pop();
@@ -150,7 +153,7 @@ class _BoutonCameraState extends State<BoutonCamera> {
                       ),
                       ListTile(
                         leading: const Icon(Icons.photo_camera),
-                        title: const Text('Caméra'),
+                        title: const Text('Camera'),
                         onTap: () {
                           _takePicture(ImageSource.camera, context);
                           Navigator.of(context).pop();

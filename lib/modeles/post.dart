@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'constantes.dart'; // Import constants for field keys
+import 'constantes.dart';
 
 class Post {
   DocumentReference reference;
@@ -9,12 +9,12 @@ class Post {
   Post({required this.reference, required this.id, required this.map});
 
   // Getters for post fields using keys from constantes.dart
-  String get memberId => map[memberIdKey] ?? ""; // ID of the author (member)
+  String get memberId => map[memberIdKey] ?? "";
   String get text => map[textKey] ?? "";
-  String? get imageUrl => map[postImageKey]; // Image URL can be null
+  String? get imageUrl => map[postImageKey];
   DateTime get date =>
       map[dateKey] != null
           ? DateTime.fromMillisecondsSinceEpoch(map[dateKey] as int)
-          : DateTime.now(); // Convert timestamp to DateTime
-  List<dynamic> get likes => map[likesKey] ?? []; // List of user IDs who liked
+          : DateTime.now();
+  List<dynamic> get likes => map[likesKey] ?? [];
 }

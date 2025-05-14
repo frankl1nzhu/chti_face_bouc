@@ -3,7 +3,7 @@ import '../modeles/constantes.dart';
 import 'service_firestore.dart';
 
 class ServiceAuthentification {
-  // 单例模式实现
+  // Singleton pattern implementation
   static final ServiceAuthentification _instance =
       ServiceAuthentification._internal();
 
@@ -13,10 +13,10 @@ class ServiceAuthentification {
 
   ServiceAuthentification._internal();
 
-  // Récupérer une instance de auth
+  // Get an instance of auth
   final instance = FirebaseAuth.instance;
 
-  // Connecter à Firebase
+  // Sign in to Firebase
   Future<String?> signIn({
     required String email,
     required String password,
@@ -33,36 +33,36 @@ class ServiceAuthentification {
       result = null; // Indicate success (no error message)
     } on FirebaseAuthException catch (e) {
       print("FirebaseAuthException during sign in: ${e.code} - ${e.message}");
-      // 提供更有用的错误消息
+      // Provide more useful error messages
       switch (e.code) {
         case 'user-not-found':
-          result = "Aucun utilisateur trouvé avec cette adresse e-mail.";
+          result = "No user found with this email address.";
           break;
         case 'wrong-password':
-          result = "Mot de passe incorrect.";
+          result = "Incorrect password.";
           break;
         case 'invalid-email':
-          result = "Format d'adresse e-mail invalide.";
+          result = "Invalid email format.";
           break;
         case 'user-disabled':
-          result = "Ce compte a été désactivé.";
+          result = "This account has been disabled.";
           break;
         default:
           result = e.message;
       }
     } catch (e) {
       print("Generic error during sign in: $e");
-      result = "Erreur de connexion: $e"; // Return generic error message
+      result = "Connection error: $e"; // Return generic error message
     }
     return result;
   }
 
-  // Créer un compte sur Firebase
+  // Create an account on Firebase
   Future<String?> createAccount({
     required String email,
     required String password,
-    required String surname, // Prénom
-    required String name, // Nom
+    required String surname, // First name
+    required String name, // Last name
   }) async {
     String? result;
     try {
@@ -94,38 +94,38 @@ class ServiceAuthentification {
       print(
         "FirebaseAuthException during account creation: ${e.code} - ${e.message}",
       );
-      // 提供更有用的错误消息
+      // Provide more useful error messages
       switch (e.code) {
         case 'weak-password':
-          result = "Le mot de passe fourni est trop faible.";
+          result = "The password provided is too weak.";
           break;
         case 'email-already-in-use':
-          result = "Un compte existe déjà pour cette adresse e-mail.";
+          result = "An account already exists for this email address.";
           break;
         case 'invalid-email':
-          result = "Format d'adresse e-mail invalide.";
+          result = "Invalid email format.";
           break;
         case 'operation-not-allowed':
-          result = "La création de compte est désactivée.";
+          result = "Account creation is disabled.";
           break;
         default:
           result = e.message;
       }
     } catch (e) {
       print("Generic error during account creation: $e");
-      result = "Erreur lors de la création du compte: $e";
+      result = "Error creating account: $e";
     }
     return result;
   }
 
-  // Déconnecter de Firebase
+  // Sign out from Firebase
   Future<bool> signOut() async {
     bool result = false;
     try {
       print("Attempting to sign out user");
       await instance.signOut();
       print("Sign out successful");
-      // 延迟一小段时间来确保状态更新
+      // Delay a short time to ensure state updates
       await Future.delayed(const Duration(milliseconds: 500));
       result = true;
     } catch (e) {
@@ -135,7 +135,7 @@ class ServiceAuthentification {
     return result;
   }
 
-  // Récupérer l'id unique de l'utilisateur
+  // Get the unique ID of the user
   String? get myId {
     final user = instance.currentUser;
     if (user != null) {
@@ -146,7 +146,7 @@ class ServiceAuthentification {
     return null;
   }
 
-  // Voir si vous etes l'utilisateur
+  // Check if you are the user
   bool isMe(String profileId) {
     bool result = false;
     final currentId = myId;
@@ -156,9 +156,9 @@ class ServiceAuthentification {
     return result;
   }
 
-  // 获取当前用户的电子邮件
+  // Get the current user's email
   String? get currentEmail => instance.currentUser?.email;
 
-  // 检查用户是否已登录
+  // Check if user is logged in
   bool get isUserLoggedIn => instance.currentUser != null;
 }

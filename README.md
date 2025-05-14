@@ -110,7 +110,3 @@ Chti Face Bouc is a mobile social network application developed with Flutter and
 - Date: Creation timestamp
 - Read: Read status
 - Post ID: Reference to the concerned post
-
-## Credits
-
-Developed as part of an educational project.

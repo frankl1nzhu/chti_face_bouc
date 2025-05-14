@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:intl/intl.dart'; // For date formatting
+import 'package:intl/intl.dart';
 import '../services_firebase/service_authentification.dart';
 import 'page_authentification.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services_firebase/service_firestore.dart';
-import '../widgets/widget_vide.dart'; // EmptyBody helper
-import '../modeles/constantes.dart'; // Import constants for field keys
-// Import WidgetPost (created in Step 9)
-import '../widgets/post_widget.dart'; // Import WidgetPost
-// Import Post model (created in Step 6)
+import '../widgets/widget_vide.dart';
+import '../modeles/constantes.dart';
+import '../widgets/post_widget.dart';
 import '../modeles/post.dart';
 
 class PageAccueil extends StatefulWidget {
@@ -30,7 +28,7 @@ class _PageAccueilState extends State<PageAccueil> {
     );
   }
 
-  // 创建一个函数来获取作者信息
+  // Create a function to get author information
   Widget buildPost(
     BuildContext context,
     Map<String, dynamic> data,
@@ -44,7 +42,7 @@ class _PageAccueilState extends State<PageAccueil> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 使用FutureBuilder获取作者信息
+            // Use FutureBuilder to get author information
             FutureBuilder<DocumentSnapshot>(
               future:
                   ServiceFirestore().firestoreMember
@@ -52,10 +50,10 @@ class _PageAccueilState extends State<PageAccueil> {
                       .get(),
               builder: (context, memberSnapshot) {
                 if (memberSnapshot.connectionState == ConnectionState.waiting) {
-                  return const Text("Chargement de l'auteur...");
+                  return const Text("Loading author...");
                 }
 
-                String authorName = "Auteur inconnu";
+                String authorName = "Unknown author";
                 if (memberSnapshot.hasData && memberSnapshot.data != null) {
                   final memberData =
                       memberSnapshot.data!.data() as Map<String, dynamic>?;
@@ -67,13 +65,13 @@ class _PageAccueilState extends State<PageAccueil> {
                 }
 
                 return Text(
-                  "Auteur: $authorName",
+                  "Author: $authorName",
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 );
               },
             ),
             const SizedBox(height: 8),
-            Text("Texte: ${data[textKey] ?? 'No content'}"),
+            Text("Text: ${data[textKey] ?? 'No content'}"),
             const SizedBox(height: 8),
             if (data[dateKey] != null)
               Text(
@@ -83,7 +81,7 @@ class _PageAccueilState extends State<PageAccueil> {
             if (data[likesKey] != null)
               Text("Likes: ${(data[likesKey] as List).length}"),
 
-            // 如果有图片，显示图片
+            // If there's an image, display it
             if (data[postImageKey] != null &&
                 data[postImageKey].toString().isNotEmpty)
               Padding(
@@ -105,9 +103,7 @@ class _PageAccueilState extends State<PageAccueil> {
                     );
                   },
                   errorBuilder: (context, error, stackTrace) {
-                    return const Center(
-                      child: Text("Impossible de charger l'image"),
-                    );
+                    return const Center(child: Text("Unable to load image"));
                   },
                 ),
               ),
@@ -123,9 +119,9 @@ class _PageAccueilState extends State<PageAccueil> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
-      ), // AppBar
+      ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: ServiceFirestore().allPosts(), // Use the new method
+        stream: ServiceFirestore().allPosts(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -152,9 +148,9 @@ class _PageAccueilState extends State<PageAccueil> {
               );
               return WidgetPost(post: post);
             },
-          ); // ListView.builder
+          );
         },
-      ), // StreamBuilder
-    ); // Scaffold
+      ),
+    );
   }
 }

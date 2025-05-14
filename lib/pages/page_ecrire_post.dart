@@ -38,13 +38,13 @@ class _PageEcrirePostState extends State<PageEcrirePost> {
   Future<void> _takePic(ImageSource source) async {
     try {
       setState(() {
-        // 隐藏任何以前的错误消息
-        if (_isSending) return; // 如果正在发送则不允许选择新图片
+        // Hide any previous error messages
+        if (_isSending) return; // Don't allow new image selection while sending
       });
 
       final ImagePicker picker = ImagePicker();
 
-      // 显示加载指示器
+      // Show loading indicator
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Row(
@@ -55,22 +55,22 @@ class _PageEcrirePostState extends State<PageEcrirePost> {
                 child: CircularProgressIndicator(strokeWidth: 2),
               ),
               SizedBox(width: 10),
-              Text('Chargement de l\'image...'),
+              Text('Loading image...'),
             ],
           ),
           duration: Duration(seconds: 2),
         ),
       );
 
-      // 选择图片并限制大小
+      // Select image with size limits
       XFile? newFile = await picker.pickImage(
         source: source,
-        maxWidth: 1200, // 限制宽度，平衡质量和性能
-        imageQuality: 85, // 适当压缩图片质量
+        maxWidth: 1200, // Limit width to balance quality and performance
+        imageQuality: 85, // Compress image quality appropriately
       );
 
       if (newFile != null) {
-        // 检查文件大小
+        // Check file size
         final file = File(newFile.path);
         final fileSize = await file.length();
         final fileSizeInMB = fileSize / (1024 * 1024);
@@ -80,10 +80,10 @@ class _PageEcrirePostState extends State<PageEcrirePost> {
         );
 
         if (fileSize > 10 * 1024 * 1024) {
-          // 10MB限制
+          // 10MB limit
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Image trop volumineuse (max: 10MB)'),
+              content: Text('Image too large (max: 10MB)'),
               backgroundColor: Colors.red,
             ),
           );
@@ -91,19 +91,19 @@ class _PageEcrirePostState extends State<PageEcrirePost> {
         }
 
         setState(() {
-          _imageFile = newFile; // 更新状态以显示预览
+          _imageFile = newFile; // Update state to show preview
         });
 
-        // 显示成功消息
+        // Show success message
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Image sélectionnée avec succès'),
+            content: Text('Image selected successfully'),
             backgroundColor: Colors.green,
           ),
         );
       } else {
-        // 用户取消了选择
+        // User cancelled selection
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
       }
     } catch (e) {
@@ -111,7 +111,7 @@ class _PageEcrirePostState extends State<PageEcrirePost> {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erreur lors de la sélection de l\'image: $e'),
+          content: Text('Error selecting image: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -128,9 +128,7 @@ class _PageEcrirePostState extends State<PageEcrirePost> {
         // Show error message - cannot send empty post
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
-              'Veuillez écrire quelque chose ou ajouter une image.',
-            ),
+            content: Text('Please write something or add an image.'),
             backgroundColor: Colors.orange,
           ),
         );
@@ -153,10 +151,12 @@ class _PageEcrirePostState extends State<PageEcrirePost> {
                 child: CircularProgressIndicator(strokeWidth: 2),
               ),
               SizedBox(width: 10),
-              Text('Envoi du post en cours...'),
+              Text('Sending post...'),
             ],
           ),
-          duration: Duration(minutes: 1), // 长时间显示，直到上传完成
+          duration: Duration(
+            minutes: 1,
+          ), // Long duration until upload completes
         ),
       );
 
@@ -178,7 +178,7 @@ class _PageEcrirePostState extends State<PageEcrirePost> {
       scaffoldMessenger.hideCurrentSnackBar();
       scaffoldMessenger.showSnackBar(
         const SnackBar(
-          content: Text('Post envoyé avec succès!'),
+          content: Text('Post sent successfully!'),
           backgroundColor: Colors.green,
         ),
       );
@@ -195,7 +195,7 @@ class _PageEcrirePostState extends State<PageEcrirePost> {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erreur d\'envoi: $e'),
+          content: Text('Error sending: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -227,7 +227,7 @@ class _PageEcrirePostState extends State<PageEcrirePost> {
                       const Icon(Icons.border_color, color: Colors.brown),
                       const SizedBox(width: 8),
                       const Text(
-                        "Ecrire un post",
+                        "Write a post",
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -236,7 +236,7 @@ class _PageEcrirePostState extends State<PageEcrirePost> {
                       const Spacer(),
                       // Show user info who is creating the post
                       Text(
-                        "Par ${widget.member.fullName}",
+                        "By ${widget.member.fullName}",
                         style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                     ],
@@ -245,7 +245,7 @@ class _PageEcrirePostState extends State<PageEcrirePost> {
                   TextField(
                     controller: textController,
                     decoration: const InputDecoration(
-                      hintText: 'Votre post',
+                      hintText: 'Your post',
                       border: OutlineInputBorder(),
                     ),
                     maxLines: null, // Allow multiple lines
@@ -289,7 +289,7 @@ class _PageEcrirePostState extends State<PageEcrirePost> {
                       Expanded(
                         child: OutlinedButton.icon(
                           icon: const Icon(Icons.photo_library),
-                          label: const Text("Galerie"),
+                          label: const Text("Gallery"),
                           onPressed:
                               _imageFile == null
                                   ? () => _takePic(ImageSource.gallery)
@@ -300,7 +300,7 @@ class _PageEcrirePostState extends State<PageEcrirePost> {
                       Expanded(
                         child: OutlinedButton.icon(
                           icon: const Icon(Icons.camera_alt),
-                          label: const Text("Caméra"),
+                          label: const Text("Camera"),
                           onPressed:
                               _imageFile == null
                                   ? () => _takePic(ImageSource.camera)
@@ -323,7 +323,7 @@ class _PageEcrirePostState extends State<PageEcrirePost> {
               child:
                   _isSending
                       ? const CircularProgressIndicator()
-                      : const Text("Envoyer"),
+                      : const Text("Send"),
             ),
           ),
         ],
